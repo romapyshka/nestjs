@@ -5,6 +5,7 @@ import RegisterDto from './dto/register.dto';
 import { JwtService } from '@nestjs/jwt';
 import { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
+import TokenPayload from './tokenPayload.interface';
 
 @Injectable()
 export class AuthenticationService {
@@ -21,7 +22,7 @@ export class AuthenticationService {
       registrationData.password = hashedPassword;
       const createdUser = await this.usersService.create(registrationData);
       createdUser.password = undefined;
-      return createdUser
+      return createdUser['id']
     } catch (error) {
       return response.send(error)
     }
@@ -48,17 +49,21 @@ export class AuthenticationService {
     }
   }
 
-  public getCookieWithJwtToken(userId: number) {
+  public getJwtAccessToken(userId: number) {
     const payload: TokenPayload = { userId };
-    const token = this.jwtService.sign(payload);
-    return `Token = '${token}'`;
+    const token = this.jwtService.sign(payload, {
+      secret: this.configService.get('JWT_ACCESS_TOKEN_SECRET'),
+      expiresIn: `${this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION_TIME')}s`
+    })
+    return token;
   }
 
-  public getCookieWithJwtRefreshToken(userId: number) {
+  public getJwtRefreshToken(userId: number) {
     const payload: TokenPayload = { userId };
-    return this.jwtService.sign(payload, {
+    const token = this.jwtService.sign(payload, {
       secret: this.configService.get('JWT_REFRESH_TOKEN_SECRET'),
       expiresIn: `${this.configService.get('JWT_REFRESH_TOKEN_EXPIRATION_TIME')}s`
     })
+    return token;
   }
 }

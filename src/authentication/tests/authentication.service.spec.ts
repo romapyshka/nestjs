@@ -1,28 +1,30 @@
 import { AuthenticationService } from '../authentication.service';
-import { UsersService } from '../../users/users.service';
-import { Repository } from 'typeorm';
-import User from '../../users/user.entity';
-import { JwtService } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
+import { Test } from '@nestjs/testing';
+import { ConfigModule } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
+import { UsersModule } from '../../users/users.module';
+import { DatabaseModule } from '../../database.module';
 
 describe('The AuthenticationService', () => {
   let authenticationService: AuthenticationService;
-  beforeEach(() => {
-    authenticationService = new AuthenticationService(
-      new UsersService(
-        new Repository<User>()
-      ),
-      new JwtService({
-        secretOrPrivateKey: 'Secret key'
-      }),
-      new ConfigService()
-    );
+  beforeEach(async () => {
+    const module = await Test.createTestingModule({
+      imports: [
+        UsersModule,
+        DatabaseModule,
+        ConfigModule.forRoot(),
+        JwtModule.register({}),
+      ],
+      providers: [ AuthenticationService ],
+    })
+      .compile();
+    authenticationService = await module.get<AuthenticationService>(AuthenticationService);
   })
   describe('when creating a cookie', () => {
     it('should return a string', () => {
       const userId = 1;
       expect(
-        typeof authenticationService.getCookieWithJwtToken(userId)
+        typeof authenticationService.getJwtAccessToken(userId)
       ).toEqual('string')
     })
   })

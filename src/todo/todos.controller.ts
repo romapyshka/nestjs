@@ -14,7 +14,7 @@ import { TodosService } from './todos.service';
 import { UpdateTodoDto } from './dto/updateTodo.dto';
 import RoleGuard from '../users/role.guard';
 import Role from '../users/role.enum';
-import JwtAuthenticationGuard from '../authentication/jwt-authentication.guard';
+import JwtAccessGuard from '../authentication/jwt-access.guard';
 
 @Controller('todos')
 @UseInterceptors(ClassSerializerInterceptor)
@@ -33,21 +33,21 @@ export class TodosController {
 
   @Post()
   @UseGuards(RoleGuard(Role.User))
-  @UseGuards(JwtAuthenticationGuard)
+  @UseGuards(JwtAccessGuard)
   async createTodo(@Body() todo: CreateTodoDto) {
     return this.todosService.createTodo(todo);
   }
 
   @Put(':id')
   @UseGuards(RoleGuard(Role.User))
-  @UseGuards(JwtAuthenticationGuard)
+  @UseGuards(JwtAccessGuard)
   async updatePost(@Param('id') id: string, @Body() todo: UpdateTodoDto) {
     return this.todosService.updateTodo(Number(id), todo);
   }
 
   @Delete(':id')
   @UseGuards(RoleGuard(Role.Admin))
-  @UseGuards(JwtAuthenticationGuard)
+  @UseGuards(JwtAccessGuard)
   async deleteTodo(@Param('id') id: string) {
     await this.todosService.deleteTodo(Number(id));
   }
